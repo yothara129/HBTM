@@ -1,0 +1,1711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LearnLoop — AI-Powered Trail Log</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['Fraunces', 'serif'],
+            sans: ['Inter', 'sans-serif'],
+            mono: ['"IBM Plex Mono"', 'monospace'],
+          },
+          colors: {
+            trailBg: '#141B16',
+            trailCard: '#1C2420',
+            trailAmber: '#E8A33D',
+            trailGreen: '#4C7A5D',
+            trailRust: '#B5533C',
+            trailText: '#EDE6D6',
+            trailMuted: '#8B9E91',
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'fade-in': 'fadeIn 0.5s ease-out forwards',
+            'draw-line': 'drawLine 2s ease-out forwards',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0', transform: 'translateY(10px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts: Fraunces (Serif), Inter (Sans), IBM Plex Mono (Mono) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Inter:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- React, ReactDOM, and Babel CDNs -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      background-color: #141B16;
+      color: #EDE6D6;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #141B16;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1C2420;
+      border: 1px solid rgba(237, 230, 214, 0.1);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #8B9E91;
+    }
+    /* Rustic field log card */
+    .field-card {
+      background-color: #1C2420;
+      border: 1px solid rgba(237, 230, 214, 0.08);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+    .field-card-interactive {
+      transition: all 0.25s ease;
+    }
+    .field-card-interactive:hover {
+      border-color: rgba(232, 163, 61, 0.3);
+      background-color: rgba(28, 36, 32, 0.8);
+      transform: translateY(-2px);
+    }
+    /* Highlight animation for Agent 4 updates */
+    .replan-pulse-highlight {
+      animation: replan-pulse 2.5s ease-out 2;
+    }
+    @keyframes replan-pulse {
+      0% { border-color: rgba(232, 163, 61, 0.2); background-color: #1C2420; }
+      50% { border-color: #E8A33D; background-color: rgba(232, 163, 61, 0.05); }
+      100% { border-color: rgba(237, 230, 214, 0.08); background-color: #1C2420; }
+    }
+  </style>
+</head>
+<body class="min-h-screen relative selection:bg-trailAmber selection:text-trailBg">
+
+  <!-- Background decorative leaf textures or minimal shades -->
+  <div class="fixed top-[10%] left-[-5%] w-[40%] h-[40%] bg-trailGreen/5 rounded-full blur-[100px] pointer-events-none z-0"></div>
+  <div class="fixed bottom-[10%] right-[-5%] w-[40%] h-[40%] bg-trailGreen/5 rounded-full blur-[100px] pointer-events-none z-0"></div>
+
+  <!-- Root React App -->
+  <div id="root" class="relative z-10 min-h-screen flex flex-col"></div>
+
+  <!-- React code starts here -->
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useMemo } = React;
+
+    // --- Hardcoded Preset Goals for Intake ---
+    const GOAL_PRESETS = [
+      {
+        title: "DSA / SDE Expedition",
+        description: "Traverse Arrays, Strings, Trees, and Dynamic Programming.",
+        text: "Crack coding interviews at product-based companies. I need to master DSA, specifically arrays, strings, dynamic programming, and system design, in 8 weeks, spending 12 hours/week."
+      },
+      {
+        title: "Data Science Trail",
+        description: "Acquire Pandas, Scikit-Learn, and deploy 3 portfolio projects.",
+        text: "Build a Data Science Portfolio with 3 projects in 6 weeks. I want to learn Pandas, machine learning modeling with Scikit-Learn, and deploy my models on Streamlit, dedicating 15 hours/week."
+      },
+      {
+        title: "Full-Stack Web Trek",
+        description: "Hike React, Next.js, Node.js, and MongoDB.",
+        text: "Become a job-ready full-stack developer in 10 weeks. I need a plan to learn React, Next.js, Express, MongoDB, and Tailwind CSS. I have 8 hours a week to study."
+      }
+    ];
+
+    // --- Hardcoded Mock Data (Deterministic fallbacks) ---
+    const MOCK_INTENT = {
+      domain: "Data Structures & Algorithms",
+      specific_goal: "Crack coding interviews at product-based companies",
+      current_skill_level: "intermediate",
+      target_outcome: "Job-ready for SDE interviews",
+      timeline_weeks: 4,
+      weekly_time_available_hours: 10,
+      assumptions_made: "Assumed intermediate skill level based on interview target. Timeline adjusted to a 4-week intensive sprint."
+    };
+
+    const MOCK_PLAN = {
+      goal_summary: "Crack coding interviews at product-based companies focusing on core DSA and problem solving.",
+      total_weeks: 4,
+      milestones: [
+        {
+          id: "m1",
+          week: 1,
+          title: "Arrays & Strings Waypoint",
+          status: "in_progress",
+          tasks: [
+            { id: "t1_1", title: "Two Pointer Technique", type: "video", estimated_minutes: 45, completed: false },
+            { id: "t1_2", title: "Sliding Window Core Patterns", type: "reading", estimated_minutes: 60, completed: false },
+            { id: "t1_3", title: "Implement 5 Core Array Problems", type: "practice", estimated_minutes: 90, completed: false },
+            { id: "t1_4", title: "Two Pointer Quiz", type: "quiz", estimated_minutes: 30, completed: false }
+          ]
+        },
+        {
+          id: "m2",
+          week: 2,
+          title: "Linked Lists & Stacks/Queues",
+          status: "not_started",
+          tasks: [
+            { id: "t2_1", title: "LinkedList Reversal & Cycle Detection", type: "practice", estimated_minutes: 60, completed: false },
+            { id: "t2_2", title: "Stack implementation & Matching Brackets", type: "video", estimated_minutes: 45, completed: false },
+            { id: "t2_3", title: "Queue implementation using Stacks", type: "practice", estimated_minutes: 60, completed: false }
+          ]
+        },
+        {
+          id: "m3",
+          week: 3,
+          title: "Trees & Recursion Wilderness",
+          status: "not_started",
+          tasks: [
+            { id: "t3_1", title: "Binary Tree Traversals (DFS/BFS)", type: "video", estimated_minutes: 60, completed: false },
+            { id: "t3_2", title: "Invert Binary Tree & Lowest Common Ancestor", type: "practice", estimated_minutes: 90, completed: false }
+          ]
+        },
+        {
+          id: "m4",
+          week: 4,
+          title: "Dynamic Programming Summit",
+          status: "not_started",
+          tasks: [
+            { id: "t4_1", title: "Recursion with Memoization (Fibonacci/Climbing Stairs)", type: "video", estimated_minutes: 60, completed: false },
+            { id: "t4_2", title: "1D DP problems on Leetcode", type: "practice", estimated_minutes: 90, completed: false }
+          ]
+        }
+      ]
+    };
+
+    const MOCK_NUDGE = {
+      trigger: "inactivity_3_days",
+      message: "Our trail log notes you've paused for 3 days. To keep your DSA expedition moving, let's review 'Two Pointer Technique' — it takes only 5 minutes to cross this minor peak.",
+      suggested_action: { task_id: "t1_1", action: "review" }
+    };
+
+    const MOCK_REPLAN_RESULT = {
+      trigger_event: "quiz_score_low",
+      quiz_topic: "Two Pointer Technique",
+      score_percent: 40,
+      plan_changes: [
+        {
+          action: "insert_task",
+          milestone_id: "m1",
+          task: {
+            title: "Remedial: Two Pointer Visual Practice (Visualizer Tool)",
+            type: "practice",
+            estimated_minutes: 30
+          }
+        },
+        {
+          action: "delay_milestone",
+          milestone_id: "m2",
+          new_week: 3
+        },
+        {
+          action: "delay_milestone",
+          milestone_id: "m3",
+          new_week: 4
+        },
+        {
+          action: "delay_milestone",
+          milestone_id: "m4",
+          new_week: 5
+        }
+      ],
+      explanation_to_learner: "Since the Two Pointers quiz score was low (40%), I've inserted a remedial practice loop to solidify your understanding. Subsequent milestones on the trail have been adjusted by 1 week to avoid fatigue."
+    };
+
+    // --- Helper for Topic-Specific Mock Fallbacks ---
+    function getCustomizedMockPlan(goalText, intent) {
+      const text = (goalText || '').toLowerCase();
+      let customPlan = JSON.parse(JSON.stringify(MOCK_PLAN));
+      
+      if (text.includes('spanish') || text.includes('language') || text.includes('mexico')) {
+        customPlan.goal_summary = "Learn conversational Mexican Spanish for basic travel interactions like ordering food, asking directions, and casual greetings.";
+        customPlan.milestones[0].title = "Greetings and Mexican Polite Expressions";
+        customPlan.milestones[0].tasks = [
+          { id: "t1_1", title: "Mexican Spanish Pronunciation Basics", type: "video", estimated_minutes: 45, completed: false },
+          { id: "t1_2", title: "Essential Greetings and Courtesies in Mexico", type: "reading", estimated_minutes: 60, completed: false },
+          { id: "t1_3", title: "Pronunciation Drills and Recording Practice", type: "practice", estimated_minutes: 90, completed: false },
+          { id: "t1_4", title: "Greetings and Politeness Quiz", type: "quiz", estimated_minutes: 30, completed: false }
+        ];
+        customPlan.milestones[1].title = "Introduction to Verbs: Ser & Estar";
+        customPlan.milestones[1].tasks = [
+          { id: "t2_1", title: "The Verb 'Ser' and Subject Pronouns", type: "video", estimated_minutes: 45, completed: false },
+          { id: "t2_2", title: "The Verb 'Estar' & Location Expressions", type: "practice", estimated_minutes: 60, completed: false }
+        ];
+        customPlan.milestones[2].title = "Travel Survival Vocabulary";
+        customPlan.milestones[2].tasks = [
+          { id: "t3_1", title: "Ordering Food in Restaurants", type: "video", estimated_minutes: 60, completed: false },
+          { id: "t3_2", title: "Directions & Transport Phrases", type: "practice", estimated_minutes: 90, completed: false }
+        ];
+        customPlan.milestones[3].title = "Conversational Scenarios Practice";
+        customPlan.milestones[3].tasks = [
+          { id: "t4_1", title: "Roleplay: Checking into a Hotel", type: "practice", estimated_minutes: 60, completed: false },
+          { id: "t4_2", title: "Conversational Final Assessment", type: "quiz", estimated_minutes: 90, completed: false }
+        ];
+      } else if (text.includes('finance') || text.includes('money') || text.includes('app')) {
+        customPlan.goal_summary = "Build a personal finance tracking web app using React and Node.js.";
+        customPlan.milestones[0].title = "Backend Foundations & Database Schema";
+        customPlan.milestones[0].tasks = [
+          { id: "t1_1", title: "Database Modeling for Transactions & Budgets", type: "reading", estimated_minutes: 45, completed: false },
+          { id: "t1_2", title: "Express Server Setup & Transaction CRUD Routes", type: "practice", estimated_minutes: 60, completed: false },
+          { id: "t1_3", title: "Authentication Routes (JWT)", type: "practice", estimated_minutes: 90, completed: false },
+          { id: "t1_4", title: "Backend API and REST Practices Quiz", type: "quiz", estimated_minutes: 30, completed: false }
+        ];
+        customPlan.milestones[1].title = "React Frontend & UI Configuration";
+        customPlan.milestones[1].tasks = [
+          { id: "t2_1", title: "Initialize React app with Tailwind CSS", type: "video", estimated_minutes: 45, completed: false },
+          { id: "t2_2", title: "Build Transaction Forms & Dashboard Panels", type: "practice", estimated_minutes: 60, completed: false }
+        ];
+        customPlan.milestones[2].title = "Frontend API Integration & State";
+        customPlan.milestones[2].tasks = [
+          { id: "t3_1", title: "Connect React Frontend to Express Backend", type: "practice", estimated_minutes: 60, completed: false },
+          { id: "t3_2", title: "Chart.js Integration for Spending Visualizations", type: "practice", estimated_minutes: 90, completed: false }
+        ];
+        customPlan.milestones[3].title = "Polishing, Testing, and Deployment";
+        customPlan.milestones[3].tasks = [
+          { id: "t4_1", title: "Deploy Backend to Render & Frontend to Netlify", type: "practice", estimated_minutes: 60, completed: false },
+          { id: "t4_2", title: "Full System Deployment & Testing Quiz", type: "quiz", estimated_minutes: 90, completed: false }
+        ];
+      } else if (text.includes('aws') || text.includes('solutions architect') || text.includes('exam')) {
+        customPlan.goal_summary = "Prepare for and pass the AWS Certified Solutions Architect Associate exam.";
+        customPlan.milestones[0].title = "AWS Core Services & IAM Foundations";
+        customPlan.milestones[0].tasks = [
+          { id: "t1_1", title: "Video: Global Infrastructure & IAM Policies", type: "video", estimated_minutes: 45, completed: false },
+          { id: "t1_2", title: "Deploying Web Servers on EC2 and VPC Basics", type: "practice", estimated_minutes: 60, completed: false },
+          { id: "t1_3", title: "AWS Storage: S3, EFS, and EBS Features", type: "reading", estimated_minutes: 90, completed: false },
+          { id: "t1_4", title: "Core Services and IAM Foundations Quiz", type: "quiz", estimated_minutes: 30, completed: false }
+        ];
+        customPlan.milestones[1].title = "High Availability & Load Balancing";
+        customPlan.milestones[1].tasks = [
+          { id: "t2_1", title: "Configuring ELB, Auto Scaling Groups, and Route 53", type: "video", estimated_minutes: 45, completed: false },
+          { id: "t2_2", title: "Lab: Highly Available Web Architecture", type: "practice", estimated_minutes: 60, completed: false }
+        ];
+        customPlan.milestones[2].title = "AWS Databases & Security Integration";
+        customPlan.milestones[2].tasks = [
+          { id: "t3_1", title: "RDS, DynamoDB, and Aurora Features & Selection", type: "reading", estimated_minutes: 60, completed: false },
+          { id: "t3_2", title: "Securing VPCs with NACLs and Security Groups", type: "practice", estimated_minutes: 90, completed: false }
+        ];
+        customPlan.milestones[3].title = "Practice Exam & Final Prep Summit";
+        customPlan.milestones[3].tasks = [
+          { id: "t4_1", title: "Mock Exam review & Timing Practice", type: "practice", estimated_minutes: 60, completed: false },
+          { id: "t4_2", title: "AWS Solutions Architect Core Practice Exam", type: "quiz", estimated_minutes: 90, completed: false }
+        ];
+      }
+      return customPlan;
+    }
+
+    // --- JSON Schemas for Gemini Native APIs ---
+    const AGENT1_SCHEMA = {
+      type: "OBJECT",
+      properties: {
+        domain: { type: "STRING" },
+        specific_goal: { type: "STRING" },
+        current_skill_level: { type: "STRING", enum: ["beginner", "intermediate", "advanced"] },
+        target_outcome: { type: "STRING" },
+        timeline_weeks: { type: "NUMBER" },
+        weekly_time_available_hours: { type: "NUMBER" },
+        assumptions_made: { type: "STRING" }
+      },
+      required: ["domain", "specific_goal", "current_skill_level", "target_outcome", "timeline_weeks", "weekly_time_available_hours"]
+    };
+
+    const AGENT2_SCHEMA = {
+      type: "OBJECT",
+      properties: {
+        goal_summary: { type: "STRING" },
+        total_weeks: { type: "NUMBER" },
+        milestones: {
+          type: "ARRAY",
+          items: {
+            type: "OBJECT",
+            properties: {
+              id: { type: "STRING" },
+              week: { type: "NUMBER" },
+              title: { type: "STRING" },
+              status: { type: "STRING", enum: ["not_started", "in_progress", "completed", "delayed"] },
+              tasks: {
+                type: "ARRAY",
+                items: {
+                  type: "OBJECT",
+                  properties: {
+                    id: { type: "STRING" },
+                    title: { type: "STRING" },
+                    type: { type: "STRING", enum: ["video", "practice", "quiz", "reading"] },
+                    estimated_minutes: { type: "NUMBER" },
+                    completed: { type: "BOOLEAN" }
+                  },
+                  required: ["id", "title", "type", "estimated_minutes", "completed"]
+                }
+              }
+            },
+            required: ["id", "week", "title", "status", "tasks"]
+          }
+        }
+      },
+      required: ["goal_summary", "total_weeks", "milestones"]
+    };
+
+    const AGENT3_SCHEMA = {
+      type: "OBJECT",
+      properties: {
+        trigger: { type: "STRING" },
+        message: { type: "STRING" },
+        suggested_action: {
+          type: "OBJECT",
+          properties: {
+            task_id: { type: "STRING" },
+            action: { type: "STRING" }
+          },
+          required: ["task_id", "action"]
+        }
+      },
+      required: ["trigger", "message", "suggested_action"]
+    };
+
+    const AGENT4_SCHEMA = {
+      type: "OBJECT",
+      properties: {
+        trigger_event: { type: "STRING" },
+        quiz_topic: { type: "STRING" },
+        score_percent: { type: "NUMBER" },
+        plan_changes: {
+          type: "ARRAY",
+          items: {
+            type: "OBJECT",
+            properties: {
+              action: { type: "STRING", enum: ["insert_task", "delay_milestone", "swap_content"] },
+              milestone_id: { type: "STRING" },
+              task: {
+                type: "OBJECT",
+                properties: {
+                  title: { type: "STRING" },
+                  type: { type: "STRING" },
+                  estimated_minutes: { type: "NUMBER" }
+                }
+              },
+              new_week: { type: "NUMBER" }
+            },
+            required: ["action", "milestone_id"]
+          }
+        },
+        explanation_to_learner: { type: "STRING" }
+      },
+      required: ["trigger_event", "quiz_topic", "score_percent", "plan_changes", "explanation_to_learner"]
+    };
+
+    // --- Main App Component ---
+    function App() {
+      // Configuration & Modes
+      const [apiKey, setApiKey] = useState('');
+      const [model, setModel] = useState('gemini-flash-latest');
+      const [mockMode, setMockMode] = useState(false);
+      const [errorNotification, setErrorNotification] = useState('');
+      const [isConfigOpen, setIsConfigOpen] = useState(false);
+      const [serverConfig, setServerConfig] = useState({ isKeyConfigured: false, defaultModel: 'gemini-flash-latest' });
+
+      // Application State
+      const [screen, setScreen] = useState('intake'); // intake, dashboard, plan, quiz
+      const [freeTextGoal, setFreeTextGoal] = useState('');
+      const [isLoading, setIsLoading] = useState(false);
+      const [loadingStep, setLoadingStep] = useState('');
+      
+      const [learnerIntent, setLearnerIntent] = useState(null);
+      const [learningPlan, setLearningPlan] = useState(null);
+      const [streak, setStreak] = useState(3);
+      const [timeSpent, setTimeSpent] = useState(45);
+      
+      const [nudge, setNudge] = useState(null);
+      const [activeNudgeBanner, setActiveNudgeBanner] = useState(null);
+      const [replanHighlight, setReplanHighlight] = useState(null); // stores { insertedTaskIds: [], delayedMilestoneIds: [], explanation: '' }
+      
+      // Load saved state on mount or URL params
+      useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const screenParam = params.get('screen');
+        const nudgeParam = params.get('nudge') === 'true';
+        const replanParam = params.get('replan') === 'true';
+        const presetParam = params.get('preset');
+        const triggerGoalParam = params.get('trigger_goal');
+
+        // Load saved settings
+        const savedKey = localStorage.getItem('learnloop_api_key');
+        if (savedKey) setApiKey(savedKey);
+        
+        const savedMode = localStorage.getItem('learnloop_mock_mode');
+        if (savedMode !== null) setMockMode(savedMode === 'true');
+
+        if (triggerGoalParam) {
+          setFreeTextGoal(triggerGoalParam);
+          handleGeneratePlan(null, triggerGoalParam);
+        } else if (presetParam) {
+          setScreen('plan');
+          setLearnerIntent({
+            domain: presetParam === 'spanish' ? 'Language Learning' : presetParam === 'finance' ? 'Web Development' : 'Cloud Computing',
+            specific_goal: presetParam === 'spanish' ? 'Learn conversational Spanish for a trip' : presetParam === 'finance' ? 'Build a personal finance web app' : 'Pass AWS Solutions Architect exam',
+            current_skill_level: 'beginner',
+            target_outcome: 'Expedition Waypoint Cleared',
+            timeline_weeks: presetParam === 'spanish' ? 12 : presetParam === 'finance' ? 4 : 6,
+            weekly_time_available_hours: presetParam === 'spanish' ? 5 : presetParam === 'finance' ? 10 : 15,
+            assumptions_made: 'Loaded from pre-generated API plan.'
+          });
+          fetch(`/${presetParam}_plan.json`)
+            .then(res => res.json())
+            .then(plan => setLearningPlan(plan))
+            .catch(err => console.error("Failed to load preset plan file:", err));
+        } else if (screenParam) {
+          setScreen(screenParam);
+          if (screenParam !== 'intake') {
+            setLearnerIntent(MOCK_INTENT);
+            let activePlan = JSON.parse(JSON.stringify(MOCK_PLAN));
+            if (replanParam) {
+              const newTaskId = 't_remedial_mock';
+              const milestone = activePlan.milestones[0];
+              if (!milestone.tasks.some(t => t.id === newTaskId)) {
+                milestone.tasks.splice(3, 0, {
+                  id: newTaskId,
+                  title: "Remedial: Two Pointer Visual Practice (Visualizer Tool)",
+                  type: "practice",
+                  estimated_minutes: 30,
+                  completed: false,
+                  isNew: true
+                });
+              }
+              activePlan.milestones[1].week = 3;
+              activePlan.milestones[1].isDelayed = true;
+              activePlan.milestones[2].week = 4;
+              activePlan.milestones[2].isDelayed = true;
+              activePlan.milestones[3].week = 5;
+              activePlan.milestones[3].isDelayed = true;
+              activePlan.milestones.sort((a, b) => a.week - b.week);
+              
+              setReplanHighlight({
+                insertedTaskIds: [newTaskId],
+                delayedMilestoneIds: ['m2', 'm3', 'm4'],
+                explanation: MOCK_REPLAN_RESULT.explanation_to_learner
+              });
+            }
+            setLearningPlan(activePlan);
+          }
+          if (nudgeParam) {
+            setActiveNudgeBanner(MOCK_NUDGE);
+          }
+        } else {
+          // Standard localStorage loading
+          const savedPlan = localStorage.getItem('learnloop_plan');
+          const savedIntent = localStorage.getItem('learnloop_intent');
+          const savedScreen = localStorage.getItem('learnloop_screen');
+          const savedStreak = localStorage.getItem('learnloop_streak');
+          const savedTime = localStorage.getItem('learnloop_time_spent');
+          const savedNudge = localStorage.getItem('learnloop_nudge');
+          const savedHighlight = localStorage.getItem('learnloop_replan_highlight');
+          
+          if (savedPlan) setLearningPlan(JSON.parse(savedPlan));
+          if (savedIntent) setLearnerIntent(JSON.parse(savedIntent));
+          if (savedScreen) setScreen(savedScreen);
+          if (savedStreak) setStreak(parseInt(savedStreak, 10));
+          if (savedTime) setTimeSpent(parseInt(savedTime, 10));
+          if (savedNudge) setActiveNudgeBanner(JSON.parse(savedNudge));
+          if (savedHighlight) setReplanHighlight(JSON.parse(savedHighlight));
+        }
+
+        // Fetch Server Configuration
+        fetch('/api/config')
+          .then(res => res.json())
+          .then(data => {
+            setServerConfig(data);
+            if (data.isKeyConfigured) {
+              setMockMode(false);
+              setModel(data.defaultModel);
+            }
+          })
+          .catch(err => console.log("Standalone mode, proxy server not detected"));
+      }, []);
+
+      // Save state changes
+      const saveState = (plan, intent, currentScreen, currentStreak, time, activeNudgeVal, highlightVal) => {
+        if (plan) localStorage.setItem('learnloop_plan', JSON.stringify(plan));
+        if (intent) localStorage.setItem('learnloop_intent', JSON.stringify(intent));
+        localStorage.setItem('learnloop_screen', currentScreen);
+        localStorage.setItem('learnloop_streak', currentStreak.toString());
+        localStorage.setItem('learnloop_time_spent', time.toString());
+        if (activeNudgeVal) {
+          localStorage.setItem('learnloop_nudge', JSON.stringify(activeNudgeVal));
+        } else {
+          localStorage.removeItem('learnloop_nudge');
+        }
+        if (highlightVal) {
+          localStorage.setItem('learnloop_replan_highlight', JSON.stringify(highlightVal));
+        } else {
+          localStorage.removeItem('learnloop_replan_highlight');
+        }
+      };
+
+      // Reset application state
+      const handleReset = () => {
+        setLearningPlan(null);
+        setLearnerIntent(null);
+        setScreen('intake');
+        setStreak(3);
+        setTimeSpent(45);
+        setActiveNudgeBanner(null);
+        setReplanHighlight(null);
+        localStorage.removeItem('learnloop_plan');
+        localStorage.removeItem('learnloop_intent');
+        localStorage.removeItem('learnloop_screen');
+        localStorage.removeItem('learnloop_nudge');
+        localStorage.removeItem('learnloop_replan_highlight');
+        // Clear query parameters to restore standard intake
+        window.history.pushState({}, document.title, window.location.pathname);
+      };
+
+      // API Key / Configuration Save
+      const handleSaveConfig = (newKey, newModel, newMock) => {
+        setApiKey(newKey);
+        setModel(newModel);
+        setMockMode(newMock);
+        localStorage.setItem('learnloop_api_key', newKey);
+        localStorage.setItem('learnloop_mock_mode', String(newMock));
+        setIsConfigOpen(false);
+      };
+
+      // Helper function to call Gemini API proxy
+      const callAgent = async (systemInstruction, promptText, schema) => {
+        const body = {
+          contents: [{ role: "user", parts: [{ text: promptText }] }],
+          systemInstruction: { parts: [{ text: systemInstruction }] },
+          generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: schema
+          }
+        };
+
+        const headers = { 'Content-Type': 'application/json' };
+        if (apiKey) headers['x-api-key'] = apiKey;
+        headers['x-model-name'] = model;
+
+        const response = await fetch('/api/gemini', {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify(body)
+        });
+
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.error?.message || `API Error (Status ${response.status})`);
+        }
+
+        const data = await response.json();
+        const jsonText = data.candidates[0].content.parts[0].text;
+        return JSON.parse(jsonText);
+      };
+
+      // --- AGENT 1 + AGENT 2 Flow: Generate Plan ---
+      const handleGeneratePlan = async (e, customGoal) => {
+        e?.preventDefault();
+        const goalToUse = customGoal || freeTextGoal;
+        if (!goalToUse.trim()) return;
+
+        setIsLoading(true);
+        setLoadingStep('AGENT 1: Parsing your learning goal...');
+        
+        try {
+          let intentResult;
+          if (mockMode) {
+            await new Promise(r => setTimeout(r, 1200));
+            intentResult = { ...MOCK_INTENT, specific_goal: goalToUse.substring(0, 100) };
+          } else {
+            intentResult = await callAgent(
+              "You are an intent-parsing engine for a learning platform. Given a learner's free-text goal, extract structured data. If timeline or hours/week isn't specified, make a reasonable estimate based on the goal's typical scope and note it in assumptions_made.",
+              `Parse this learner's goal into structured data: ${goalToUse}`,
+              AGENT1_SCHEMA
+            );
+          }
+
+          setLearnerIntent(intentResult);
+          setLoadingStep('AGENT 2: Plotting your waypoint timeline...');
+
+          let planResult;
+          if (mockMode) {
+            await new Promise(r => setTimeout(r, 1500));
+            planResult = getCustomizedMockPlan(goalToUse, intentResult);
+          } else {
+            planResult = await callAgent(
+              "You are a learning-plan generation engine. Given a structured learner intent, generate a realistic, milestone-based, week-by-week learning plan. Keep each week to 2-4 tasks realistic for the learner's stated weekly hours. Order topics in a pedagogically sound sequence for the given domain.",
+              `Generate a learning plan for this learner intent: ${JSON.stringify(intentResult)}`,
+              AGENT2_SCHEMA
+            );
+          }
+
+          setLearningPlan(planResult);
+          setScreen('dashboard');
+          saveState(planResult, intentResult, 'dashboard', streak, timeSpent, activeNudgeBanner, replanHighlight);
+        } catch (err) {
+          console.error(err);
+          setErrorNotification(`Couldn't reach the AI (${err.message}) — showing a sample plan instead.`);
+          setMockMode(true);
+          const fallbackIntent = {
+            domain: goalToUse.toLowerCase().includes('spanish') ? 'Language Learning' : goalToUse.toLowerCase().includes('finance') ? 'Web Development' : 'Cloud Computing',
+            specific_goal: goalToUse.substring(0, 100),
+            current_skill_level: 'beginner',
+            target_outcome: 'Completed basic learning objectives',
+            timeline_weeks: 4,
+            weekly_time_available_hours: 10,
+            assumptions_made: 'Auto-fallback to customized mock plan.'
+          };
+          const fallbackPlan = getCustomizedMockPlan(goalToUse, fallbackIntent);
+          setLearnerIntent(fallbackIntent);
+          setLearningPlan(fallbackPlan);
+          setScreen('dashboard');
+          saveState(fallbackPlan, fallbackIntent, 'dashboard', streak, timeSpent, activeNudgeBanner, replanHighlight);
+        } finally {
+          setIsLoading(false);
+          setLoadingStep('');
+        }
+      };
+
+      // --- AGENT 3 Flow: Smart Nudge Simulation ---
+      const handleSimulateInactivity = async () => {
+        if (!learningPlan) return;
+        
+        setLoadingStep('AGENT 3: Analysing hike records...');
+        
+        try {
+          let nudgeResult;
+          if (mockMode) {
+            await new Promise(r => setTimeout(r, 800));
+            nudgeResult = MOCK_NUDGE;
+          } else {
+            nudgeResult = await callAgent(
+              "You are an intelligent nudge engine for a learning agent. Given the learner's current plan state and a trigger event (inactivity, low quiz score, or falling behind), generate ONE short, warm, specific, contextual nudge message (2-3 sentences max) that references their actual goal and the actual topic/task involved. Never generate generic reminders like 'Don't forget to study!'",
+              `Plan state: ${JSON.stringify(learningPlan)}. Trigger event: '3 days inactive, last worked on task t1_1 (Two Pointer Technique)'`,
+              AGENT3_SCHEMA
+            );
+          }
+          
+          setActiveNudgeBanner(nudgeResult);
+          saveState(learningPlan, learnerIntent, screen, streak, timeSpent, nudgeResult, replanHighlight);
+        } catch (err) {
+          console.error(err);
+          setActiveNudgeBanner(MOCK_NUDGE);
+        } finally {
+          setLoadingStep('');
+        }
+      };
+
+      // --- AGENT 4 Flow: Feedback & Replanning (Quiz submission) ---
+      const handleQuizSubmit = async (score) => {
+        setIsLoading(true);
+        setLoadingStep('AGENT 4: Adjusting expedition route for waypoints...');
+        
+        try {
+          let replanResult;
+          if (mockMode) {
+            await new Promise(r => setTimeout(r, 2000));
+            replanResult = MOCK_REPLAN_RESULT;
+          } else {
+            replanResult = await callAgent(
+              "You are the replanning engine for a learning agent. Given the current learning plan and a performance signal (e.g. a quiz score on a specific topic), decide how to modify the plan: insert remedial tasks, recommend alternative content, and/or delay upcoming milestones if needed. Be conservative — only make changes justified by the signal.",
+              `Current plan: ${JSON.stringify(learningPlan)}. Quiz result: topic='Two Pointer Technique', score=${score}%, questions_missed=['Standard two-pointer convergence conditions', 'Left/Right pointer initialization']`,
+              AGENT4_SCHEMA
+            );
+          }
+
+          const updatedPlan = JSON.parse(JSON.stringify(learningPlan));
+          const insertedTaskIds = [];
+          const delayedMilestoneIds = [];
+
+          replanResult.plan_changes.forEach((change) => {
+            if (change.action === 'insert_task') {
+              const milestone = updatedPlan.milestones.find(m => m.id === change.milestone_id);
+              if (milestone) {
+                const taskExists = milestone.tasks.some(t => t.title === change.task.title);
+                if (!taskExists) {
+                  const newTaskId = `t_remedial_${Date.now()}`;
+                  const newTask = {
+                    id: newTaskId,
+                    title: change.task.title,
+                    type: change.task.type || 'practice',
+                    estimated_minutes: change.task.estimated_minutes || 30,
+                    completed: false,
+                    isNew: true
+                  };
+                  milestone.tasks.splice(milestone.tasks.length - 1, 0, newTask);
+                  insertedTaskIds.push(newTaskId);
+                }
+              }
+            } else if (change.action === 'delay_milestone') {
+              const milestoneIndex = updatedPlan.milestones.findIndex(m => m.id === change.milestone_id);
+              if (milestoneIndex !== -1) {
+                updatedPlan.milestones[milestoneIndex].week = change.new_week;
+                updatedPlan.milestones[milestoneIndex].isDelayed = true;
+                delayedMilestoneIds.push(change.milestone_id);
+              }
+            }
+          });
+
+          updatedPlan.milestones.sort((a, b) => a.week - b.week);
+          
+          const highlightData = {
+            insertedTaskIds,
+            delayedMilestoneIds,
+            explanation: replanResult.explanation_to_learner
+          };
+
+          setLearningPlan(updatedPlan);
+          setReplanHighlight(highlightData);
+          setScreen('plan');
+          saveState(updatedPlan, learnerIntent, 'plan', streak, timeSpent, activeNudgeBanner, highlightData);
+        } catch (err) {
+          console.error(err);
+          setErrorNotification(`Couldn't reach the AI for route adaptation (${err.message}) — showing simulated route correction.`);
+          
+          const updatedPlan = JSON.parse(JSON.stringify(learningPlan));
+          const newTaskId = 't_remedial_mock';
+          const milestone = updatedPlan.milestones[0];
+          if (!milestone.tasks.some(t => t.id === newTaskId)) {
+            milestone.tasks.splice(3, 0, {
+              id: newTaskId,
+              title: "Remedial: Two Pointer Visual Practice (Visualizer Tool)",
+              type: "practice",
+              estimated_minutes: 30,
+              completed: false,
+              isNew: true
+            });
+          }
+          updatedPlan.milestones[1].week = 3;
+          updatedPlan.milestones[1].isDelayed = true;
+          updatedPlan.milestones[2].week = 4;
+          updatedPlan.milestones[2].isDelayed = true;
+          updatedPlan.milestones[3].week = 5;
+          updatedPlan.milestones[3].isDelayed = true;
+          updatedPlan.milestones.sort((a, b) => a.week - b.week);
+
+          const mockHighlight = {
+            insertedTaskIds: [newTaskId],
+            delayedMilestoneIds: ['m2', 'm3', 'm4'],
+            explanation: MOCK_REPLAN_RESULT.explanation_to_learner
+          };
+          setLearningPlan(updatedPlan);
+          setReplanHighlight(mockHighlight);
+          setScreen('plan');
+          saveState(updatedPlan, learnerIntent, 'plan', streak, timeSpent, activeNudgeBanner, mockHighlight);
+        } finally {
+          setIsLoading(false);
+          setLoadingStep('');
+        }
+      };
+
+      // Toggle Task Completion State
+      const handleToggleTask = (milestoneId, taskId) => {
+        const updatedPlan = JSON.parse(JSON.stringify(learningPlan));
+        const milestone = updatedPlan.milestones.find(m => m.id === milestoneId);
+        if (milestone) {
+          const task = milestone.tasks.find(t => t.id === taskId);
+          if (task) {
+            const oldStatus = task.completed;
+            task.completed = !task.completed;
+            
+            let newTimeSpent = timeSpent;
+            if (task.completed) {
+              newTimeSpent += task.estimated_minutes;
+            } else {
+              newTimeSpent = Math.max(0, newTimeSpent - task.estimated_minutes);
+            }
+            setTimeSpent(newTimeSpent);
+
+            let newStreak = streak;
+            if (task.completed && !oldStatus) {
+              newStreak += 1;
+            }
+            setStreak(newStreak);
+
+            const allTasksCompleted = milestone.tasks.every(t => t.completed);
+            if (allTasksCompleted) {
+              milestone.status = 'completed';
+            } else if (milestone.tasks.some(t => t.completed)) {
+              milestone.status = 'in_progress';
+            } else {
+              milestone.status = 'not_started';
+            }
+
+            setLearningPlan(updatedPlan);
+            saveState(updatedPlan, learnerIntent, screen, newStreak, newTimeSpent, activeNudgeBanner, replanHighlight);
+          }
+        }
+      };
+
+      // Stats calculations
+      const progressStats = useMemo(() => {
+        if (!learningPlan) return { percent: 0, completedTasks: 0, totalTasks: 0, timePlanned: 0 };
+        let total = 0;
+        let completed = 0;
+        let timePlanned = 0;
+        learningPlan.milestones.forEach(m => {
+          m.tasks.forEach(t => {
+            total++;
+            timePlanned += t.estimated_minutes;
+            if (t.completed) completed++;
+          });
+        });
+        const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+        return { percent, completedTasks: completed, totalTasks: total, timePlanned };
+      }, [learningPlan]);
+
+      return (
+        <React.Fragment>
+          {/* Header Navigation (Only shown after plan generation) */}
+          {learningPlan && (
+            <header class="w-full bg-[#1C2420] border-b border-[#EDE6D6]/10 sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
+              <div class="flex items-center gap-3 cursor-pointer" onClick={() => setScreen('dashboard')}>
+                <div class="w-10 h-10 rounded-lg bg-[#4C7A5D] flex items-center justify-center shadow-md">
+                  <span class="font-serif font-bold text-[#EDE6D6] text-xl">L</span>
+                </div>
+                <div>
+                  <h1 class="text-md font-serif font-bold tracking-tight text-[#EDE6D6]">LearnLoop</h1>
+                  <p class="text-[10px] font-mono text-[#E8A33D] uppercase tracking-wider">Trail Expedition Log</p>
+                </div>
+              </div>
+
+              <nav class="flex items-center gap-2">
+                <button 
+                  onClick={() => setScreen('dashboard')}
+                  class={`px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all duration-200 flex items-center gap-2 ${screen === 'dashboard' ? 'bg-[#EDE6D6]/5 text-[#E8A33D] border border-[#E8A33D]/20' : 'text-[#8B9E91] hover:text-[#EDE6D6]'}`}
+                >
+                  <i data-lucide="compass" class="w-3.5 h-3.5"></i> Dashboard
+                </button>
+                <button 
+                  onClick={() => setScreen('plan')}
+                  class={`px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all duration-200 flex items-center gap-2 ${screen === 'plan' ? 'bg-[#EDE6D6]/5 text-[#E8A33D] border border-[#E8A33D]/20' : 'text-[#8B9E91] hover:text-[#EDE6D6]'}`}
+                >
+                  <i data-lucide="map" class="w-3.5 h-3.5"></i> Trail Map
+                </button>
+                <button 
+                  onClick={() => setScreen('quiz')}
+                  class={`px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all duration-200 flex items-center gap-2 ${screen === 'quiz' ? 'bg-[#EDE6D6]/5 text-[#E8A33D] border border-[#E8A33D]/20' : 'text-[#8B9E91] hover:text-[#EDE6D6]'}`}
+                >
+                  <i data-lucide="clipboard" class="w-3.5 h-3.5"></i> Waypoint Quiz
+                </button>
+              </nav>
+
+              <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded bg-[#EDE6D6]/5 border border-[#EDE6D6]/10 text-[#E8A33D] text-xs font-mono">
+                  <i data-lucide="milestone" class="w-3.5 h-3.5"></i>
+                  <span>STREAK: {streak} DAYS</span>
+                </div>
+                <button 
+                  onClick={handleReset}
+                  class="p-2 rounded text-[#8B9E91] hover:text-[#B5533C] transition-all duration-200"
+                  title="Abandon Expedition"
+                >
+                  <i data-lucide="log-out" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </header>
+          )}
+
+          {/* Error Notification Toast Banner */}
+          {errorNotification && (
+            <div class="w-full max-w-4xl mx-auto mt-4 bg-[#B5533C]/10 border border-[#B5533C]/35 rounded p-4 flex items-center justify-between text-[#EDE6D6] animate-pulse-slow">
+              <div class="flex items-center gap-2">
+                <i data-lucide="alert-circle" class="w-4.5 h-4.5 text-[#B5533C]"></i>
+                <span class="text-[10px] font-mono font-bold uppercase text-[#B5533C] tracking-wide">SYSTEM:</span>
+                <span class="text-xs">{errorNotification}</span>
+              </div>
+              <button onClick={() => setErrorNotification('')} class="text-[#8B9E91] hover:text-[#EDE6D6] p-1">
+                <i data-lucide="x" class="w-4 h-4"></i>
+              </button>
+            </div>
+          )}
+
+          {/* Main Content Area */}
+          <main class="flex-grow flex flex-col items-center justify-center p-6 relative z-10 w-full">
+            {screen === 'intake' && (
+              <IntakeScreen 
+                freeTextGoal={freeTextGoal}
+                setFreeTextGoal={setFreeTextGoal}
+                onSubmit={handleGeneratePlan}
+                isLoading={isLoading}
+                loadingStep={loadingStep}
+              />
+            )}
+
+            {screen === 'dashboard' && learningPlan && (
+              <DashboardScreen 
+                plan={learningPlan}
+                intent={learnerIntent}
+                stats={progressStats}
+                streak={streak}
+                timeSpent={timeSpent}
+                onSimulateInactivity={handleSimulateInactivity}
+                activeNudge={activeNudgeBanner}
+                onCloseNudge={() => setActiveNudgeBanner(null)}
+                setScreen={setScreen}
+                loadingStep={loadingStep}
+              />
+            )}
+
+            {screen === 'plan' && learningPlan && (
+              <PlanScreen 
+                plan={learningPlan}
+                highlight={replanHighlight}
+                onToggleTask={handleToggleTask}
+                onClearHighlight={() => {
+                  setReplanHighlight(null);
+                  localStorage.removeItem('learnloop_replan_highlight');
+                }}
+              />
+            )}
+
+            {screen === 'quiz' && learningPlan && (
+              <QuizScreen 
+                onSubmit={handleQuizSubmit}
+                isLoading={isLoading}
+                loadingStep={loadingStep}
+              />
+            )}
+          </main>
+
+          {/* Collapsed Developer Settings Drawer */}
+          <div class="fixed bottom-4 right-4 z-50">
+            <button 
+              onClick={() => setIsConfigOpen(!isConfigOpen)}
+              class="w-9 h-9 rounded bg-[#1C2420] border border-[#EDE6D6]/10 flex items-center justify-center text-[#8B9E91] hover:text-[#EDE6D6] hover:border-[#EDE6D6]/20 transition-all duration-200 shadow-lg"
+            >
+              <i data-lucide="sliders" class="w-4 h-4"></i>
+            </button>
+            
+            {isConfigOpen && (
+              <div class="absolute bottom-11 right-0 w-80 bg-[#1C2420] border border-[#EDE6D6]/10 p-5 rounded shadow-2xl flex flex-col gap-4">
+                <div class="flex items-center justify-between border-b border-[#EDE6D6]/10 pb-2">
+                  <h3 class="font-serif font-bold text-[#EDE6D6] text-sm">Expedition Coordinates</h3>
+                  <button onClick={() => setIsConfigOpen(false)} class="text-[#8B9E91] hover:text-[#EDE6D6]">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                  </button>
+                </div>
+                
+                <div class="flex flex-col gap-1">
+                  <label class="text-[10px] font-mono text-[#8B9E91] uppercase">Gemini API Key</label>
+                  <input 
+                    type="password" 
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    class="w-full bg-[#141B16] border border-[#EDE6D6]/10 rounded px-3 py-1.5 text-xs font-mono text-[#EDE6D6] focus:outline-none focus:border-[#E8A33D]"
+                  />
+                  {serverConfig.isKeyConfigured && (
+                    <span class="text-[9px] text-[#4C7A5D] font-mono">✔ API Key detected from server config</span>
+                  )}
+                </div>
+
+                <div class="flex flex-col gap-1">
+                  <label class="text-[10px] font-mono text-[#8B9E91] uppercase">Gemini Model</label>
+                  <select 
+                    value={model}
+                    onChange={(e) => setModel(e.target.value)}
+                    class="w-full bg-[#141B16] border border-[#EDE6D6]/10 rounded px-3 py-1.5 text-xs font-mono text-[#EDE6D6] focus:outline-none focus:border-[#E8A33D]"
+                  >
+                    <option value="gemini-flash-latest">gemini-flash-latest (Recommended)</option>
+                    <option value="gemini-3.5-flash">gemini-3.5-flash</option>
+                    <option value="gemini-3-flash">gemini-3-flash</option>
+                    <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+                  </select>
+                </div>
+
+                <div class="flex items-center justify-between bg-[#141B16] p-2.5 rounded border border-[#EDE6D6]/5">
+                  <div>
+                    <h4 class="text-xs font-serif font-bold text-[#EDE6D6]">Simulation Mode</h4>
+                    <p class="text-[9px] text-[#8B9E91]">Simulate local mock data</p>
+                  </div>
+                  <button 
+                    onClick={() => setMockMode(!mockMode)}
+                    class={`w-9 h-5 rounded-full p-0.5 transition-colors duration-200 ${mockMode ? 'bg-[#4C7A5D]' : 'bg-[#141B16] border border-[#EDE6D6]/10'}`}
+                  >
+                    <div class={`w-3.5 h-3.5 rounded-full bg-[#EDE6D6] transition-transform duration-200 ${mockMode ? 'transform translate-x-4' : ''}`}></div>
+                  </button>
+                </div>
+
+                <button 
+                  onClick={() => handleSaveConfig(apiKey, model, mockMode)}
+                  class="w-full bg-[#E8A33D] hover:bg-[#E8A33D]/95 text-[#141B16] font-mono text-xs font-bold py-2 rounded transition-all duration-200"
+                >
+                  Apply Coordinates
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Loading Overlay */}
+          {isLoading && (
+            <div class="fixed inset-0 bg-[#141B16]/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-6">
+              <div class="w-12 h-12 border-2 border-[#E8A33D]/10 border-t-[#E8A33D] rounded-full animate-spin mb-6"></div>
+              <h3 class="text-md font-serif text-[#EDE6D6] tracking-wide animate-pulse">{loadingStep}</h3>
+              <p class="text-xs text-[#8B9E91] font-mono uppercase tracking-wider mt-2">Adjusting Expedition Route...</p>
+            </div>
+          )}
+        </React.Fragment>
+      );
+    }
+
+    // --- SUBCOMPONENT: INTAKE SCREEN ---
+    function IntakeScreen({ freeTextGoal, setFreeTextGoal, onSubmit, isLoading, loadingStep }) {
+      return (
+        <div class="w-full max-w-2xl bg-[#1C2420] border border-[#EDE6D6]/10 p-8 md:p-10 rounded shadow-2xl relative overflow-hidden animate-fade-in">
+          
+          <div class="flex flex-col items-center text-center mb-8">
+            <div class="w-12 h-12 rounded bg-[#4C7A5D]/15 border border-[#4C7A5D]/30 flex items-center justify-center text-[#4C7A5D] mb-4">
+              <i data-lucide="compass" class="w-6 h-6"></i>
+            </div>
+            <h2 class="text-3xl font-serif font-bold text-[#EDE6D6] tracking-tight">
+              Begin a New <span class="text-[#E8A33D] italic">Expedition</span>
+            </h2>
+            <p class="text-[#8B9E91] mt-2 text-sm max-w-sm">
+              Log your primary study goal. Our waypoint agents will chart a structured path through the wilderness.
+            </p>
+          </div>
+
+          <form onSubmit={onSubmit} class="flex flex-col gap-6">
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-mono uppercase text-[#8B9E91] tracking-wider">Expedition Objectives</label>
+              <textarea 
+                rows="4"
+                placeholder="Log details of what you wish to study, your weekly commitment, and target weeks..."
+                value={freeTextGoal}
+                onChange={(e) => setFreeTextGoal(e.target.value)}
+                class="w-full bg-[#141B16] border border-[#EDE6D6]/10 rounded p-4 text-sm text-[#EDE6D6] focus:outline-none focus:border-[#E8A33D] transition-all duration-200 resize-none leading-relaxed placeholder-[#8B9E91]/40"
+              ></textarea>
+            </div>
+
+            {/* Presets */}
+            <div class="flex flex-col gap-2.5">
+              <span class="text-[10px] font-mono uppercase text-[#8B9E91] tracking-wider">Select Pre-Plotted Route:</span>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {GOAL_PRESETS.map((preset, index) => (
+                  <button 
+                    key={index}
+                    type="button"
+                    onClick={() => setFreeTextGoal(preset.text)}
+                    class="bg-[#141B16]/60 text-left p-4 rounded border border-[#EDE6D6]/5 hover:border-[#E8A33D]/25 transition-all duration-200 flex flex-col gap-1 shadow-sm"
+                  >
+                    <span class="text-xs font-serif font-bold text-[#EDE6D6]">{preset.title}</span>
+                    <span class="text-[9px] text-[#8B9E91] leading-relaxed mt-0.5">{preset.description}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button 
+              type="submit"
+              disabled={!freeTextGoal.trim()}
+              class="w-full bg-[#E8A33D] hover:bg-[#E8A33D]/95 disabled:opacity-40 text-[#141B16] font-mono py-3 rounded text-xs font-bold uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 mt-2"
+            >
+              <span>Chart Study Trail</span>
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+          </form>
+        </div>
+      );
+    }
+
+    // --- SUBCOMPONENT: DASHBOARD SCREEN ---
+    function DashboardScreen({ plan, intent, stats, streak, timeSpent, onSimulateInactivity, activeNudge, onCloseNudge, setScreen, loadingStep }) {
+      return (
+        <div class="w-full max-w-4xl flex flex-col gap-6 animate-fade-in">
+          
+          {/* Smart Nudge Banner - Redesigned using Rust Red (#B5533C) */}
+          {activeNudge && (
+            <div class="w-full bg-[#B5533C]/10 border border-[#B5533C]/35 rounded p-5 flex items-start justify-between gap-4 relative">
+              <div class="absolute left-0 top-0 bottom-0 w-1 bg-[#B5533C]"></div>
+              <div class="flex items-start gap-4">
+                <div class="w-9 h-9 rounded bg-[#B5533C]/10 border border-[#B5533C]/30 flex items-center justify-center text-[#B5533C] shrink-0">
+                  <i data-lucide="alert-triangle" class="w-4.5 h-4.5"></i>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono font-bold text-[#B5533C] uppercase tracking-wider">Trail Dispatch • Agent 3 Alert</span>
+                  </div>
+                  <p class="text-sm text-[#EDE6D6] mt-1 leading-relaxed">{activeNudge.message}</p>
+                  <button 
+                    onClick={() => setScreen('plan')}
+                    class="text-xs text-[#E8A33D] font-mono uppercase tracking-wider font-bold hover:underline mt-2 flex items-center gap-1"
+                  >
+                    <span>Resume Hike</span>
+                    <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+              <button onClick={onCloseNudge} class="text-[#8B9E91] hover:text-[#EDE6D6] p-1">
+                <i data-lucide="x" class="w-4 h-4"></i>
+              </button>
+            </div>
+          )}
+
+          {/* Goal Header */}
+          <div class="bg-[#1C2420] border border-[#EDE6D6]/10 p-6 rounded flex flex-col md:flex-row md:items-center justify-between gap-6 relative">
+            <div class="absolute left-0 top-0 bottom-0 w-1 bg-[#E8A33D]"></div>
+            <div>
+              <span class="text-[10px] font-mono text-[#E8A33D] uppercase tracking-wider">Active Expedition</span>
+              <h2 class="text-2xl font-serif font-bold text-[#EDE6D6] mt-1">{intent?.specific_goal || "DSA Exploration"}</h2>
+              <div class="flex flex-wrap gap-x-6 gap-y-2 mt-3">
+                <div class="flex items-center gap-1.5 text-xs text-[#8B9E91]">
+                  <i data-lucide="folder" class="w-3.5 h-3.5"></i>
+                  <span>Region: <strong class="text-[#EDE6D6] font-medium">{intent?.domain}</strong></span>
+                </div>
+                <div class="flex items-center gap-1.5 text-xs text-[#8B9E91]">
+                  <i data-lucide="compass" class="w-3.5 h-3.5"></i>
+                  <span>Target: <strong class="text-[#EDE6D6] font-medium">{intent?.current_skill_level}</strong></span>
+                </div>
+                <div class="flex items-center gap-1.5 text-xs text-[#8B9E91]">
+                  <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                  <span>Pace: <strong class="text-[#EDE6D6] font-medium">{intent?.weekly_time_available_hours}h/wk</strong></span>
+                </div>
+              </div>
+            </div>
+            
+            <button 
+              onClick={() => setScreen('plan')}
+              class="bg-[#E8A33D] hover:bg-[#E8A33D]/95 text-[#141B16] font-mono text-xs font-bold py-2.5 px-5 rounded uppercase tracking-wider shrink-0"
+            >
+              Open Trail Map
+            </button>
+          </div>
+
+          {/* Instrument Grid: Stats & Dev Panel */}
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* Stat Box 1: Progress */}
+            <div class="bg-[#1C2420] border border-[#EDE6D6]/10 p-6 rounded flex flex-col items-center justify-center text-center">
+              <span class="text-[10px] font-mono text-[#8B9E91] uppercase tracking-wider mb-4">Trail Completed</span>
+              
+              <div class="relative w-28 h-28 flex items-center justify-center mb-4">
+                <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="42" stroke="rgba(237, 230, 214, 0.04)" stroke-width="6" fill="transparent" />
+                  <circle 
+                    cx="50" 
+                    cy="50" 
+                    r="42" 
+                    stroke="#4C7A5D" 
+                    stroke-width="6" 
+                    fill="transparent" 
+                    stroke-dasharray="263.8"
+                    stroke-dashoffset={263.8 - (263.8 * stats.percent) / 100}
+                    stroke-linecap="square"
+                    class="transition-all duration-500 ease-out"
+                  />
+                </svg>
+                <div class="absolute flex flex-col items-center">
+                  <span class="text-3xl font-mono font-bold text-[#EDE6D6]">{stats.percent}%</span>
+                </div>
+              </div>
+
+              <div class="text-[10px] font-mono text-[#8B9E91] uppercase mt-2">
+                <span>{stats.completedTasks} / {stats.totalTasks} waypoints cleared</span>
+              </div>
+            </div>
+
+            {/* Stat Box 2: Streak (Mission Counter Style) */}
+            <div class="bg-[#1C2420] border border-[#EDE6D6]/10 p-6 rounded flex flex-col items-center justify-center text-center">
+              <span class="text-[10px] font-mono text-[#8B9E91] uppercase tracking-wider mb-4">Expedition Days Active</span>
+              
+              <div class="border border-[#EDE6D6]/10 rounded px-6 py-4 bg-[#141B16] w-full max-w-[160px] shadow-inner mb-4 flex items-center justify-center">
+                <span class="text-5xl font-mono font-bold text-[#E8A33D] tracking-widest">{streak.toString().padStart(2, '0')}</span>
+              </div>
+
+              <div class="text-[10px] font-mono text-[#8B9E91] uppercase">
+                <span>Consecutive log check-ins</span>
+              </div>
+            </div>
+
+            {/* Stat Box 3: Dev Simulation Panel */}
+            <div class="bg-[#1C2420] border border-[#EDE6D6]/10 p-6 rounded flex flex-col justify-between">
+              <div>
+                <span class="text-[10px] font-mono text-[#B5533C] uppercase tracking-wider font-bold flex items-center gap-1.5">
+                  <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i> Hackathon Simulation
+                </span>
+                <p class="text-xs text-[#8B9E91] mt-2 leading-relaxed">
+                  Demonstrate system adaptability on stage. Trigger a simulated inactivity event to prompt Agent 3.
+                </p>
+              </div>
+
+              <div class="flex flex-col gap-2 mt-6">
+                <button 
+                  onClick={onSimulateInactivity}
+                  disabled={loadingStep}
+                  class="w-full bg-[#EDE6D6]/5 border border-[#EDE6D6]/10 hover:border-[#E8A33D]/30 text-[#E8A33D] font-mono py-3 px-4 rounded text-xs font-bold uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-40"
+                >
+                  <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                  <span>Simulate Inactivity</span>
+                </button>
+                <span class="text-[9px] font-mono text-[#8B9E91]/60 text-center">Simulates 3 idle days on the trail.</span>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Time Spent Stats Bar */}
+          <div class="bg-[#1C2420] border border-[#EDE6D6]/10 p-6 rounded flex flex-col gap-4">
+            <span class="text-[10px] font-mono text-[#8B9E91] uppercase tracking-wider">Hike Time Log (Minutes)</span>
+            
+            <div class="flex flex-col md:flex-row items-center gap-6 justify-between">
+              <div class="w-full md:w-3/4 flex items-center gap-4">
+                <span class="text-xs font-mono text-[#8B9E91] w-12">LOGGED</span>
+                <div class="w-full bg-[#141B16] border border-[#EDE6D6]/5 rounded h-3 overflow-hidden">
+                  <div class="bg-[#4C7A5D] h-full transition-all duration-500" style={{ width: `${Math.min(100, (timeSpent / (stats.timePlanned || 1)) * 100)}%` }}></div>
+                </div>
+                <span class="text-xs font-mono text-[#EDE6D6] w-16 text-right">{timeSpent} MINS</span>
+              </div>
+
+              <div class="w-full md:w-1/4 text-right">
+                <span class="text-xs font-mono text-[#8B9E91] mr-2">TOTAL PLANNED:</span>
+                <span class="text-xs font-mono text-[#EDE6D6] font-bold">{stats.timePlanned}m</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // --- SUBCOMPONENT: PLAN TIMELINE SCREEN (SIGNATURE TRAIL REDESIGN) ---
+    function PlanScreen({ plan, highlight, onToggleTask, onClearHighlight }) {
+      const [openWeeks, setOpenWeeks] = useState({ 1: true });
+
+      const toggleWeek = (weekNum) => {
+        setOpenWeeks(prev => ({
+          ...prev,
+          [weekNum]: !prev[weekNum]
+        }));
+      };
+
+      return (
+        <div class="w-full max-w-4xl flex flex-col gap-6 animate-fade-in pb-12">
+          
+          {/* Agent 4 Diff Explanation Panel - Redesigned to match forest palette */}
+          {highlight && (
+            <div class="w-full bg-[#1C2420] border border-[#4C7A5D]/30 rounded p-6 shadow-xl flex flex-col gap-4 relative">
+              <div class="absolute left-0 top-0 bottom-0 w-1 bg-[#4C7A5D]"></div>
+              <div class="flex items-start justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded bg-[#4C7A5D]/10 border border-[#4C7A5D]/30 flex items-center justify-center text-[#4C7A5D] shadow-inner">
+                    <i data-lucide="compass" class="w-4.5 h-4.5"></i>
+                  </div>
+                  <div>
+                    <span class="text-[10px] font-mono text-[#4C7A5D] uppercase tracking-wider font-bold">Route Automatically Corrected • Agent 4</span>
+                    <p class="text-[9px] text-[#8B9E91] font-mono">Waypoint changes calculated live</p>
+                  </div>
+                </div>
+                <button onClick={onClearHighlight} class="text-[#8B9E91] hover:text-[#EDE6D6]">
+                  <i data-lucide="x" class="w-4.5 h-4.5"></i>
+                </button>
+              </div>
+              
+              <p class="text-sm text-[#EDE6D6] leading-relaxed italic bg-[#141B16] p-4 rounded border border-[#EDE6D6]/5">
+                "{highlight.explanation}"
+              </p>
+
+              <div class="flex flex-wrap gap-4 text-[10px] font-mono uppercase font-semibold">
+                <div class="flex items-center gap-1.5 text-[#4C7A5D]">
+                  <span class="w-2 h-2 rounded-full bg-[#4C7A5D]"></span>
+                  <span>Remedial waypoint inserted</span>
+                </div>
+                <div class="flex items-center gap-1.5 text-[#E8A33D]">
+                  <span class="w-2 h-2 rounded-full bg-[#E8A33D]"></span>
+                  <span>Trail schedule delayed 1W</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Heading */}
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <span class="text-[10px] font-mono text-[#8B9E91] uppercase tracking-wider">expedition trail map</span>
+              <h2 class="text-3xl font-serif font-bold text-[#EDE6D6]">Route Progress & Waypoints</h2>
+            </div>
+            {highlight && (
+              <button 
+                onClick={onClearHighlight}
+                class="text-[10px] bg-[#EDE6D6]/5 border border-[#EDE6D6]/10 text-[#8B9E91] font-mono uppercase tracking-wider px-3.5 py-1.5 rounded hover:text-[#EDE6D6] hover:border-[#EDE6D6]/20 transition-all duration-200"
+              >
+                Clear Highlights
+              </button>
+            )}
+          </div>
+
+          {/* Winding Trail Map Visualization */}
+          <div class="relative flex flex-col gap-0 w-full pl-2 sm:pl-0">
+            
+            {plan.milestones.map((milestone, index) => {
+              const isOpen = openWeeks[milestone.week];
+              const isDelayed = highlight?.delayedMilestoneIds.includes(milestone.id);
+              const isOdd = index % 2 === 0;
+
+              // Check milestone status
+              let status = 'future';
+              const totalMTasks = milestone.tasks.length;
+              const completedMTasks = milestone.tasks.filter(t => t.completed).length;
+              if (completedMTasks === totalMTasks && totalMTasks > 0) {
+                status = 'completed';
+              } else if (completedMTasks > 0) {
+                status = 'active';
+              } else if (index === 0 || (plan.milestones[index - 1] && plan.milestones[index - 1].status === 'completed')) {
+                // If first milestone or previous is completed, this one is active
+                status = 'active';
+              }
+
+              // Path line colors (Solid green for completed trail, dashed muted for future trail)
+              const prevMilestoneCompleted = index === 0 || plan.milestones[index - 1].status === 'completed';
+              const upperPathColor = prevMilestoneCompleted ? '#4C7A5D' : '#8B9E91';
+              const upperPathDash = prevMilestoneCompleted ? 'none' : '4,4';
+              
+              const currentMilestoneCompleted = status === 'completed';
+              const lowerPathColor = currentMilestoneCompleted ? '#4C7A5D' : '#8B9E91';
+              const lowerPathDash = currentMilestoneCompleted ? 'none' : '4,4';
+
+              return (
+                <div key={milestone.id} class="relative flex flex-col md:flex-row w-full min-h-[140px] z-10">
+                  
+                  {/* Left Column: Winding SVG Path & Node Waypoint */}
+                  <div class="relative w-16 md:w-24 shrink-0 flex items-center justify-center">
+                    
+                    {/* SVG Continuous Winding Segment */}
+                    <svg class="absolute inset-0 w-full h-full z-0 pointer-events-none" viewBox="0 0 64 100" preserveAspectRatio="none">
+                      {/* Upper curve to waypoint */}
+                      {isOdd ? (
+                        <path d="M 32 0 C 56 12, 56 38, 32 50" fill="none" stroke={upperPathColor} stroke-width="2.5" stroke-dasharray={upperPathDash} />
+                      ) : (
+                        <path d="M 32 0 C 8 12, 8 38, 32 50" fill="none" stroke={upperPathColor} stroke-width="2.5" stroke-dasharray={upperPathDash} />
+                      )}
+                      
+                      {/* Lower curve from waypoint */}
+                      {/* Only draw if not the final milestone */}
+                      {index < plan.milestones.length - 1 && (
+                        isOdd ? (
+                          <path d="M 32 50 C 8 62, 8 88, 32 100" fill="none" stroke={lowerPathColor} stroke-width="2.5" stroke-dasharray={lowerPathDash} />
+                        ) : (
+                          <path d="M 32 50 C 56 62, 56 88, 32 100" fill="none" stroke={lowerPathColor} stroke-width="2.5" stroke-dasharray={lowerPathDash} />
+                        )
+                      )}
+                    </svg>
+
+                    {/* Node Waypoint Circle Marker */}
+                    <div 
+                      onClick={() => toggleWeek(milestone.week)}
+                      class="relative z-10 cursor-pointer flex items-center justify-center transition-transform duration-250 hover:scale-110"
+                    >
+                      {status === 'completed' ? (
+                        <div class="w-8 h-8 rounded-full bg-[#4C7A5D] border-2 border-[#EDE6D6] flex items-center justify-center text-[#EDE6D6] shadow-md shadow-[#4C7A5D]/20">
+                          <i data-lucide="check" class="w-4 h-4 stroke-[3px]"></i>
+                        </div>
+                      ) : status === 'active' ? (
+                        <div class="w-8 h-8 rounded-full bg-[#E8A33D] border-2 border-[#EDE6D6] flex items-center justify-center text-[#141B16] shadow-md shadow-[#E8A33D]/30 ring-4 ring-[#E8A33D]/10">
+                          <i data-lucide="compass" class="w-4 h-4 animate-spin-slow"></i>
+                        </div>
+                      ) : (
+                        <div class="w-8 h-8 rounded-full bg-[#141B16] border-2 border-[#8B9E91]/40 flex items-center justify-center text-[#8B9E91]">
+                          <span class="text-[10px] font-mono">{milestone.week}</span>
+                        </div>
+                      )}
+                    </div>
+
+                  </div>
+
+                  {/* Right Column: Waypoint Log Details Card */}
+                  <div class="flex-grow py-3 pr-2 pl-2 md:pl-0">
+                    <div 
+                      class={`field-card rounded p-5 flex flex-col gap-3 relative ${isDelayed ? 'border-[#E8A33D]/20 bg-[#E8A33D]/[0.01]' : ''} ${isOpen ? 'shadow-lg' : ''}`}
+                    >
+                      {/* Card Header (Waypoint Summary) */}
+                      <div 
+                        onClick={() => toggleWeek(milestone.week)}
+                        class="flex items-center justify-between cursor-pointer select-none"
+                      >
+                        <div>
+                          <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-[10px] font-mono text-[#8B9E91] uppercase tracking-wider">Waypoint {milestone.week}</span>
+                            {isDelayed && (
+                              <span class="text-[9px] bg-[#E8A33D]/10 text-[#E8A33D] border border-[#E8A33D]/20 px-1.5 py-0.5 rounded font-mono font-bold uppercase tracking-wide">Route Delayed</span>
+                            )}
+                            {status === 'completed' && (
+                              <span class="text-[9px] bg-[#4C7A5D]/10 text-[#4C7A5D] border border-[#4C7A5D]/20 px-1.5 py-0.5 rounded font-mono font-bold uppercase tracking-wide">Cleared</span>
+                            )}
+                          </div>
+                          <h3 class="text-md font-serif font-bold text-[#EDE6D6] mt-0.5">{milestone.title}</h3>
+                        </div>
+                        
+                        <div class="flex items-center gap-4">
+                          <span class="text-[10px] font-mono text-[#8B9E91] uppercase hidden sm:inline">{completedMTasks}/{totalMTasks} cleared</span>
+                          <i data-lucide={isOpen ? "chevron-up" : "chevron-down"} class="w-4 h-4 text-[#8B9E91]"></i>
+                        </div>
+                      </div>
+
+                      {/* Card Expand Content: Task Logs */}
+                      {isOpen && (
+                        <div class="border-t border-[#EDE6D6]/10 pt-4 mt-2 flex flex-col gap-2.5">
+                          {milestone.tasks.map((task) => {
+                            const isNew = task.isNew;
+                            return (
+                              <div 
+                                key={task.id}
+                                class={`p-3.5 rounded border transition-all duration-300 flex items-center justify-between ${task.completed ? 'bg-[#EDE6D6]/[0.02] border-[#EDE6D6]/5 opacity-65' : isNew ? 'border-[#4C7A5D]/30 bg-[#4C7A5D]/[0.03] replan-pulse-highlight' : 'bg-[#141B16]/30 border-[#EDE6D6]/5 hover:border-[#EDE6D6]/10'}`}
+                              >
+                                <div class="flex items-center gap-3">
+                                  {/* Checkbox Waypoint Style */}
+                                  <button 
+                                    onClick={() => onToggleTask(milestone.id, task.id)}
+                                    class={`w-5 h-5 rounded flex items-center justify-center border transition-all duration-200 ${task.completed ? 'bg-[#4C7A5D] border-[#4C7A5D] text-[#EDE6D6]' : isNew ? 'border-[#4C7A5D]/40 hover:border-[#4C7A5D]' : 'border-[#8B9E91]/40 hover:border-[#E8A33D]'}`}
+                                  >
+                                    {task.completed && <i data-lucide="check" class="w-3.5 h-3.5 stroke-[3.5px]"></i>}
+                                  </button>
+
+                                  <div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                      <h4 class={`text-xs font-semibold ${task.completed ? 'line-through text-[#8B9E91] font-normal' : 'text-[#EDE6D6]'}`}>{task.title}</h4>
+                                      {isNew && (
+                                        <span class="text-[9px] bg-[#4C7A5D]/10 text-[#4C7A5D] border border-[#4C7A5D]/20 px-1.5 py-0.5 rounded font-mono font-bold uppercase tracking-wide">Remedial Waypoint</span>
+                                      )}
+                                    </div>
+                                    
+                                    <div class="flex items-center gap-3 mt-1.5 text-[10px] font-mono text-[#8B9E91]">
+                                      <span class="capitalize flex items-center gap-1">
+                                        <i data-lucide={task.type === 'video' ? 'video' : task.type === 'practice' ? 'code' : task.type === 'quiz' ? 'check-square' : 'book-open'} class="w-3 h-3 text-[#8B9E91]/65"></i>
+                                        {task.type}
+                                      </span>
+                                      <span>•</span>
+                                      <span>{task.estimated_minutes} MINS</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {!task.completed && task.type === 'quiz' && (
+                                  <button 
+                                    onClick={() => (window.location.hash = '#quiz')}
+                                    class="text-[10px] bg-[#E8A33D]/10 border border-[#E8A33D]/25 hover:bg-[#E8A33D]/20 text-[#E8A33D] font-mono uppercase tracking-wider font-bold px-3 py-1.5 rounded transition-all duration-200"
+                                  >
+                                    Take Quiz
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                    </div>
+                  </div>
+
+                </div>
+              );
+            })}
+
+          </div>
+        </div>
+      );
+    }
+
+    // --- SUBCOMPONENT: QUIZ FLOW SCREEN ---
+    function QuizScreen({ onSubmit, isLoading, loadingStep }) {
+      const [answers, setAnswers] = useState({ q1: null, q2: null, q3: null });
+      const [submitted, setSubmitted] = useState(false);
+      
+      const quizQuestions = [
+        {
+          id: "q1",
+          question: "When applying the Two-Pointer technique on a sorted array to search for a pair with a target sum, if pointerSum is less than target, what is the next step?",
+          options: [
+            "Decrement the right pointer to inspect smaller values.",
+            "Increment the left pointer to inspect larger values.",
+            "Increment both pointers simultaneously.",
+            "Terminate search as no target sum exists."
+          ],
+          correct: 1
+        },
+        {
+          id: "q2",
+          question: "What is the typical runtime complexity of a standard Two-Pointer convergence loop over an array of size N?",
+          options: [
+            "O(log N)",
+            "O(N)",
+            "O(N log N)",
+            "O(N²)"
+          ],
+          correct: 1
+        },
+        {
+          id: "q3",
+          question: "Which of the following problems is NOT typically solved efficiently using a two-pointer approach?",
+          options: [
+            "Reversing characters in a string array.",
+            "Finding two items that sum to K in a sorted array.",
+            "Validating if a string contains balanced parantheses.",
+            "Checking if a linked list contains cycles (Floyd's algorithm)."
+          ],
+          correct: 2
+        }
+      ];
+
+      const selectAnswer = (qId, optionIdx) => {
+        if (submitted) return;
+        setAnswers(prev => ({
+          ...prev,
+          [qId]: optionIdx
+        }));
+      };
+
+      const handleSelfGrade = (e) => {
+        e.preventDefault();
+        setSubmitted(true);
+      };
+
+      const triggerSimulatedLowScore = () => {
+        setAnswers({ q1: 0, q2: 3, q3: 0 });
+        setSubmitted(true);
+        onSubmit(40);
+      };
+
+      const calculateScore = () => {
+        let correctCount = 0;
+        quizQuestions.forEach(q => {
+          if (answers[q.id] === q.correct) correctCount++;
+        });
+        return Math.round((correctCount / quizQuestions.length) * 100);
+      };
+
+      const score = calculateScore();
+
+      return (
+        <div class="w-full max-w-2xl bg-[#1C2420] border border-[#EDE6D6]/10 p-8 rounded shadow-2xl relative overflow-hidden animate-fade-in">
+          
+          {/* Header */}
+          <div class="flex items-center justify-between border-b border-[#EDE6D6]/10 pb-5 mb-6">
+            <div>
+              <span class="text-[10px] font-mono text-[#8B9E91] uppercase tracking-wider">Module Waypoint 1</span>
+              <h2 class="text-xl font-serif font-bold text-[#EDE6D6] mt-0.5">Two Pointer Technique Assessment</h2>
+            </div>
+            
+            <button 
+              type="button"
+              onClick={triggerSimulatedLowScore}
+              class="text-[10px] bg-[#B5533C]/10 border border-[#B5533C]/30 hover:bg-[#B5533C]/20 text-[#B5533C] font-mono font-bold uppercase tracking-wider px-3.5 py-2 rounded transition-all duration-200 flex items-center gap-1.5 shadow-sm"
+            >
+              <i data-lucide="alert-triangle" class="w-3.5 h-3.5 animate-pulse"></i> Fail Quiz (Adapt Route)
+            </button>
+          </div>
+
+          <form onSubmit={handleSelfGrade} class="flex flex-col gap-6">
+            {quizQuestions.map((q, idx) => (
+              <div key={q.id} class="bg-[#141B16]/50 p-5 rounded border border-[#EDE6D6]/5">
+                <h4 class="text-sm font-serif font-bold text-[#EDE6D6] leading-relaxed mb-3">
+                  {idx + 1}. {q.question}
+                </h4>
+                
+                <div class="flex flex-col gap-2">
+                  {q.options.map((opt, optIdx) => {
+                    const isSelected = answers[q.id] === optIdx;
+                    const isCorrect = q.correct === optIdx;
+                    let optionStyle = 'border-[#EDE6D6]/5 hover:bg-[#EDE6D6]/[0.01] hover:border-[#EDE6D6]/10 text-[#8B9E91]';
+                    
+                    if (isSelected) {
+                      optionStyle = 'border-[#E8A33D] bg-[#E8A33D]/5 text-[#EDE6D6]';
+                    }
+                    if (submitted) {
+                      if (isCorrect) {
+                        optionStyle = 'border-[#4C7A5D] bg-[#4C7A5D]/5 text-[#EDE6D6] font-medium';
+                      } else if (isSelected) {
+                        optionStyle = 'border-[#B5533C] bg-[#B5533C]/5 text-[#EDE6D6]';
+                      } else {
+                        optionStyle = 'border-[#141B16]/60 opacity-40 text-[#8B9E91]';
+                      }
+                    }
+
+                    return (
+                      <div 
+                        key={optIdx}
+                        onClick={() => selectAnswer(q.id, optIdx)}
+                        class={`p-3.5 rounded border text-xs cursor-pointer transition-all duration-200 flex items-center justify-between ${optionStyle}`}
+                      >
+                        <span>{opt}</span>
+                        {submitted && isCorrect && <i data-lucide="check-circle" class="w-4 h-4 text-[#4C7A5D] shrink-0"></i>}
+                        {submitted && isSelected && !isCorrect && <i data-lucide="alert-triangle" class="w-4 h-4 text-[#B5533C] shrink-0"></i>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+            {!submitted ? (
+              <button 
+                type="submit"
+                disabled={Object.values(answers).some(a => a === null)}
+                class="w-full bg-[#E8A33D] hover:bg-[#E8A33D]/95 disabled:opacity-40 text-[#141B16] font-mono text-xs font-bold uppercase tracking-wider py-3.5 rounded transition-all duration-200 mt-2"
+              >
+                Grade Expedition Log
+              </button>
+            ) : (
+              <div class="flex flex-col md:flex-row items-center justify-between gap-6 border-t border-[#EDE6D6]/10 pt-6 mt-2">
+                <div class="flex items-center gap-4">
+                  <div class={`w-14 h-14 rounded flex flex-col items-center justify-center font-mono font-bold text-lg ${score >= 70 ? 'bg-[#4C7A5D]/10 border border-[#4C7A5D]/30 text-[#4C7A5D]' : 'bg-[#B5533C]/10 border border-[#B5533C]/30 text-[#B5533C]'}`}>
+                    <span>{score}%</span>
+                  </div>
+                  <div>
+                    <h4 class="text-sm font-serif font-bold text-[#EDE6D6]">{score >= 70 ? "Clear to Proceed" : "Route Blocked (Under 70%)"}</h4>
+                    <p class="text-xs text-[#8B9E91] mt-0.5">{score >= 70 ? "Waypoint cleared successfully!" : "Re-charting route with waypoint corrections..."}</p>
+                  </div>
+                </div>
+
+                <button 
+                  type="button"
+                  onClick={() => onSubmit(score)}
+                  class="bg-[#E8A33D] hover:bg-[#E8A33D]/95 text-[#141B16] font-mono text-xs font-bold uppercase tracking-wider py-3 px-6 rounded transition-all duration-200"
+                >
+                  Analyze & Adapt Route
+                </button>
+              </div>
+            )}
+          </form>
+        </div>
+      );
+    }
+
+    // --- Render React App ---
+    const rootEl = document.getElementById('root');
+    const root = ReactDOM.createRoot(rootEl);
+    root.render(<App />);
+
+    // Custom hash routing helper for assessment links
+    window.addEventListener('hashchange', () => {
+      if (window.location.hash === '#quiz') {
+        const checkEl = document.querySelector('[data-lucide="clipboard"]');
+        if (checkEl) checkEl.click();
+      }
+    });
+
+    // Run lucide icon rendering on changes
+    setInterval(() => {
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+    }, 1000);
+  </script>
+</body>
+</html>

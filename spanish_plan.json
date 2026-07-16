@@ -1,0 +1,438 @@
+{
+  "goal_summary": "Learn conversational Spanish for travel to Mexico in 12 weeks, spending 5 hours per week, focusing on greetings, ordering food, asking for directions, and basic local interactions.",
+  "total_weeks": 12,
+  "milestones": [
+    {
+      "id": "m1",
+      "week": 1,
+      "title": "Pronunciation, Basic Greetings, and Polite Phrases",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "t1_1",
+          "title": "Spanish Pronunciation & Mexican Accent Basics",
+          "type": "video",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t1_2",
+          "title": "Essential Greetings & Goodbyes (Hola, Buenos días, Adiós)",
+          "type": "reading",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t1_3",
+          "title": "Polite Phrases (Por favor, Gracias, De nada, Disculpe)",
+          "type": "practice",
+          "estimated_minutes": 120,
+          "completed": false
+        },
+        {
+          "id": "t1_4",
+          "title": "Pronunciation & Basic Greetings Quiz",
+          "type": "quiz",
+          "estimated_minutes": 60,
+          "completed": false
+        }
+      ]
+    },
+    {
+      "id": "m2",
+      "week": 2,
+      "title": "Numbers, Currency, and Telling Time",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "t2_1",
+          "title": "Learning Numbers 1 to 100",
+          "type": "video",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t2_2",
+          "title": "Handling Mexican Pesos (Counting money & prices)",
+          "type": "reading",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t2_3",
+          "title": "Asking for and Telling the Time",
+          "type": "practice",
+          "estimated_minutes": 120,
+          "completed": false
+        },
+        {
+          "id": "t2_4",
+          "title": "Numbers & Money Practice Quiz",
+          "type": "quiz",
+          "estimated_minutes": 60,
+          "completed": false
+        }
+      ]
+    },
+    {
+      "id": "m3",
+      "week": 3,
+      "title": "Asking for and Understanding Directions",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "t3_1",
+          "title": "Directional Vocabulary (Derecha, Izquierda, Derecho, ¿Dónde está...?)",
+          "type": "video",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t3_2",
+          "title": "Identifying Common Landmarks (Calle, Hotel, Baño, Restaurante)",
+          "type": "reading",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t3_3",
+          "title": "Roleplay: Asking a Local for Directions",
+          "type": "practice",
+          "estimated_minutes": 120,
+          "completed": false
+        },
+        {
+          "id": "t3_4",
+          "title": "Directions & Landmarks Quiz",
+          "type": "quiz",
+          "estimated_minutes": 60,
+          "completed": false
+        }
+      ]
+    },
+    {
+      "id": "m4",
+      "week": 4,
+      "title": "Navigating Transportation",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "t4_1",
+          "title": "Taking a Taxi or Uber in Mexico (Key Phrases)",
+          "type": "video",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t4_2",
+          "title": "Public Transportation: Buses, Metro, and Colectivos",
+          "type": "reading",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t4_3",
+          "title": "Buying Tickets & Confirming Destinations",
+          "type": "practice",
+          "estimated_minutes": 120,
+          "completed": false
+        },
+        {
+          "id": "t4_4",
+          "title": "Transportation Vocabulary Quiz",
+          "type": "quiz",
+          "estimated_minutes": 60,
+          "completed": false
+        }
+      ]
+    },
+    {
+      "id": "m5",
+      "week": 5,
+      "title": "Ordering Food at a Restaurant",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "t5_1",
+          "title": "Restaurant Etiquette & Ordering (Quiero, Me da, Para mí...)",
+          "type": "video",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t5_2",
+          "title": "Food Vocabulary: Meats, Vegetables, and Basics",
+          "type": "reading",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t5_3",
+          "title": "Practice: Ordering Food and Drinks",
+          "type": "practice",
+          "estimated_minutes": 120,
+          "completed": false
+        },
+        {
+          "id": "t5_4",
+          "title": "Ordering & Food Quiz",
+          "type": "quiz",
+          "estimated_minutes": 60,
+          "completed": false
+        }
+      ]
+    },
+    {
+      "id": "m6",
+      "week": 6,
+      "title": "Mexican Street Food & Paying the Bill",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "t6_1",
+          "title": "How to Order at a Mexican Taquería",
+          "type": "video",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t6_2",
+          "title": "Asking for the Bill (La cuenta, por favor) and Tipping Rules",
+          "type": "reading",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t6_3",
+          "title": "Simulated Taquería Order & Paying Scenario",
+          "type": "practice",
+          "estimated_minutes": 120,
+          "completed": false
+        },
+        {
+          "id": "t6_4",
+          "title": "Paying & Bill Phrases Quiz",
+          "type": "quiz",
+          "estimated_minutes": 60,
+          "completed": false
+        }
+      ]
+    },
+    {
+      "id": "m7",
+      "week": 7,
+      "title": "Shopping and Bargaining at Markets (Mercados)",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "t7_1",
+          "title": "Shopping Vocabulary: Sizes, Colors, and Materials",
+          "type": "video",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t7_2",
+          "title": "Polite Bargaining (¿Cuánto cuesta?, ¿Cuánto es lo menos?)",
+          "type": "reading",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t7_3",
+          "title": "Practice: Buying Souvenirs at an Artisan Market",
+          "type": "practice",
+          "estimated_minutes": 120,
+          "completed": false
+        },
+        {
+          "id": "t7_4",
+          "title": "Shopping and Bargaining Quiz",
+          "type": "quiz",
+          "estimated_minutes": 60,
+          "completed": false
+        }
+      ]
+    },
+    {
+      "id": "m8",
+      "week": 8,
+      "title": "Hotel and Accommodation Check-In",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "t8_1",
+          "title": "Checking Into a Hotel or Airbnb (Key Phrases)",
+          "type": "video",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t8_2",
+          "title": "Asking for Amenities (WiFi key, towels, extra key)",
+          "type": "reading",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t8_3",
+          "title": "Reporting Room Issues (The AC doesn't work, no hot water)",
+          "type": "practice",
+          "estimated_minutes": 120,
+          "completed": false
+        },
+        {
+          "id": "t8_4",
+          "title": "Accommodation Vocabulary Quiz",
+          "type": "quiz",
+          "estimated_minutes": 60,
+          "completed": false
+        }
+      ]
+    },
+    {
+      "id": "m9",
+      "week": 9,
+      "title": "Basic Socializing & Mexican Slang",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "t9_1",
+          "title": "Making Basic Small Talk with Locals",
+          "type": "video",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t9_2",
+          "title": "Essential Mexican Slang & Idioms (¿Qué onda?, Chido, Ahorita)",
+          "type": "reading",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t9_3",
+          "title": "Practice: Introducing Yourself and Where You Are From",
+          "type": "practice",
+          "estimated_minutes": 120,
+          "completed": false
+        },
+        {
+          "id": "t9_4",
+          "title": "Socializing & Slang Quiz",
+          "type": "quiz",
+          "estimated_minutes": 60,
+          "completed": false
+        }
+      ]
+    },
+    {
+      "id": "m10",
+      "week": 10,
+      "title": "Emergencies, Health, and Safety",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "t10_1",
+          "title": "Emergency Phrases (¡Ayuda!, Necesito un médico)",
+          "type": "video",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t10_2",
+          "title": "Visiting a Pharmacy (Farmacia Similares / Ahorro) and Common Ailments",
+          "type": "reading",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t10_3",
+          "title": "Roleplay: Describing a Common Illness or Requesting Medication",
+          "type": "practice",
+          "estimated_minutes": 120,
+          "completed": false
+        },
+        {
+          "id": "t10_4",
+          "title": "Emergency Situations Quiz",
+          "type": "quiz",
+          "estimated_minutes": 60,
+          "completed": false
+        }
+      ]
+    },
+    {
+      "id": "m11",
+      "week": 11,
+      "title": "Comprehensive Listening & Accent Comprehension",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "t11_1",
+          "title": "Listening Comprehension: Real Mexican Spanish Audio Clips",
+          "type": "video",
+          "estimated_minutes": 90,
+          "completed": false
+        },
+        {
+          "id": "t11_2",
+          "title": "Reviewing Common Signage (Push/Pull, Entry/Exit, Warnings)",
+          "type": "reading",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t11_3",
+          "title": "Interactive Conversational Drills (Mixed Scenarios)",
+          "type": "practice",
+          "estimated_minutes": 120,
+          "completed": false
+        },
+        {
+          "id": "t11_4",
+          "title": "Comprehensive Listening Quiz",
+          "type": "quiz",
+          "estimated_minutes": 30,
+          "completed": false
+        }
+      ]
+    },
+    {
+      "id": "m12",
+      "week": 12,
+      "title": "Final Review & Travel Simulation",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "t12_1",
+          "title": "Travel Day Prep: Airport, Customs, and Baggage Claim",
+          "type": "video",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t12_2",
+          "title": "Compiled Travel Cheat Sheet Review",
+          "type": "reading",
+          "estimated_minutes": 60,
+          "completed": false
+        },
+        {
+          "id": "t12_3",
+          "title": "Complete Trip Simulation (Greetings, Taxi, Hotel, Restaurant, Market)",
+          "type": "practice",
+          "estimated_minutes": 150,
+          "completed": false
+        },
+        {
+          "id": "t12_4",
+          "title": "Final Survival Spanish Readiness Quiz",
+          "type": "quiz",
+          "estimated_minutes": 30,
+          "completed": false
+        }
+      ]
+    }
+  ]
+}

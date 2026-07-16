@@ -1,0 +1,143 @@
+{
+  "goal_summary": "Build a fully functional, locally runnable or deployed personal finance tracking web application using React and Node.js within 4 weeks.",
+  "total_weeks": 4,
+  "milestones": [
+    {
+      "id": "milestone_w1",
+      "week": 1,
+      "title": "Backend Foundations & Database Schema Design",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "t1_1",
+          "title": "Read on database modeling for transactions, categories, and users (Relational or NoSQL)",
+          "type": "reading",
+          "estimated_minutes": 120,
+          "completed": false
+        },
+        {
+          "id": "t1_2",
+          "title": "Set up Node.js with Express, connect to database, and build CRUD routes for transactions",
+          "type": "practice",
+          "estimated_minutes": 240,
+          "completed": false
+        },
+        {
+          "id": "t1_3",
+          "title": "Implement basic JWT authentication middleware and test routes using Postman",
+          "type": "practice",
+          "estimated_minutes": 180,
+          "completed": false
+        },
+        {
+          "id": "t1_4",
+          "title": "Quiz on RESTful API best practices and Node.js security patterns",
+          "type": "quiz",
+          "estimated_minutes": 30,
+          "completed": false
+        }
+      ]
+    },
+    {
+      "id": "milestone_w2",
+      "week": 2,
+      "title": "React Frontend Architecture & Component Construction",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "t2_1",
+          "title": "Initialize React project using Vite, set up React Router, and establish folder structure",
+          "type": "practice",
+          "estimated_minutes": 120,
+          "completed": false
+        },
+        {
+          "id": "t2_2",
+          "title": "Build UI components: transaction list, transaction entry form, and balance overview using Tailwind CSS",
+          "type": "practice",
+          "estimated_minutes": 240,
+          "completed": false
+        },
+        {
+          "id": "t2_3",
+          "title": "Implement global state management using React Context API to manage user authentication and transaction states",
+          "type": "practice",
+          "estimated_minutes": 180,
+          "completed": false
+        },
+        {
+          "id": "t2_4",
+          "title": "Review core React hooks and unidirectional data flow concepts",
+          "type": "quiz",
+          "estimated_minutes": 30,
+          "completed": false
+        }
+      ]
+    },
+    {
+      "id": "milestone_w3",
+      "week": 3,
+      "title": "Full-Stack Integration & Data Visualization",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "t3_1",
+          "title": "Integrate React frontend with Express backend using Axios, managing CORS and HTTP interceptors",
+          "type": "practice",
+          "estimated_minutes": 240,
+          "completed": false
+        },
+        {
+          "id": "t3_2",
+          "title": "Integrate Chart.js or Recharts to visualize spending categories and monthly income vs expense trends",
+          "type": "practice",
+          "estimated_minutes": 210,
+          "completed": false
+        },
+        {
+          "id": "t3_3",
+          "title": "Add form validation, loading skeletons, and interactive success/error notification banners",
+          "type": "practice",
+          "estimated_minutes": 120,
+          "completed": false
+        }
+      ]
+    },
+    {
+      "id": "milestone_w4",
+      "week": 4,
+      "title": "Deployment, Optimization & Final Project Launch",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "t4_1",
+          "title": "Implement filtering by date/category and budget alerts on the frontend",
+          "type": "practice",
+          "estimated_minutes": 180,
+          "completed": false
+        },
+        {
+          "id": "t4_2",
+          "title": "Secure sensitive data using dotenv, configure environment variables, and perform security cleanup",
+          "type": "practice",
+          "estimated_minutes": 120,
+          "completed": false
+        },
+        {
+          "id": "t4_3",
+          "title": "Deploy frontend to Vercel/Netlify, backend to Render/Railway, and provision a live cloud database",
+          "type": "practice",
+          "estimated_minutes": 240,
+          "completed": false
+        },
+        {
+          "id": "t4_4",
+          "title": "Final verification: complete a self-evaluation checklist on app security and responsive layout",
+          "type": "quiz",
+          "estimated_minutes": 30,
+          "completed": false
+        }
+      ]
+    }
+  ]
+}

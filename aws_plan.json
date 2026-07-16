@@ -1,0 +1,222 @@
+{
+  "goal_summary": "Pass the AWS Certified Solutions Architect - Associate (SAA-C03) exam from a beginner level over 6 weeks with 15 hours of study per week.",
+  "total_weeks": 6,
+  "milestones": [
+    {
+      "id": "m1",
+      "week": 1,
+      "title": "AWS Core Services & IAM Foundations",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "t1_1",
+          "title": "Video: AWS Global Infrastructure, IAM, and EC2 Basics",
+          "type": "video",
+          "estimated_minutes": 360,
+          "completed": false
+        },
+        {
+          "id": "t1_2",
+          "title": "Practice: Deploying EC2 Web Servers and Configuring IAM Policies",
+          "type": "practice",
+          "estimated_minutes": 240,
+          "completed": false
+        },
+        {
+          "id": "t1_3",
+          "title": "Reading: AWS Well-Architected Framework whitepaper",
+          "type": "reading",
+          "estimated_minutes": 180,
+          "completed": false
+        },
+        {
+          "id": "t1_4",
+          "title": "Quiz: Core Compute and IAM Concepts",
+          "type": "quiz",
+          "estimated_minutes": 90,
+          "completed": false
+        }
+      ]
+    },
+    {
+      "id": "m2",
+      "week": 2,
+      "title": "High Availability and Load Balancing",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "t2_1",
+          "title": "Video: Elastic Load Balancing (ELB), Auto Scaling Groups (ASG), and Route 53",
+          "type": "video",
+          "estimated_minutes": 360,
+          "completed": false
+        },
+        {
+          "id": "t2_2",
+          "title": "Practice: Configuring an ALB with an Auto Scaling Group across multiple Availability Zones",
+          "type": "practice",
+          "estimated_minutes": 240,
+          "completed": false
+        },
+        {
+          "id": "t2_3",
+          "title": "Reading: Route 53 Routing Policies and S3 Storage Tiering",
+          "type": "reading",
+          "estimated_minutes": 180,
+          "completed": false
+        },
+        {
+          "id": "t2_4",
+          "title": "Quiz: Resilient Architectures and Load Balancing",
+          "type": "quiz",
+          "estimated_minutes": 120,
+          "completed": false
+        }
+      ]
+    },
+    {
+      "id": "m3",
+      "week": 3,
+      "title": "Virtual Private Cloud (VPC) & AWS Database Architecture",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "t3_1",
+          "title": "Video: Subnets, NAT Gateways, Security Groups, NACLs, RDS, and DynamoDB",
+          "type": "video",
+          "estimated_minutes": 380,
+          "completed": false
+        },
+        {
+          "id": "t3_2",
+          "title": "Practice: Architecting a custom 3-Tier VPC with Public/Private Subnets and RDS",
+          "type": "practice",
+          "estimated_minutes": 260,
+          "completed": false
+        },
+        {
+          "id": "t3_3",
+          "title": "Reading: AWS RDS Multi-AZ vs Read Replicas, and DynamoDB performance optimizations",
+          "type": "reading",
+          "estimated_minutes": 140,
+          "completed": false
+        },
+        {
+          "id": "t3_4",
+          "title": "Quiz: Advanced VPC Networking and Database configurations",
+          "type": "quiz",
+          "estimated_minutes": 120,
+          "completed": false
+        }
+      ]
+    },
+    {
+      "id": "m4",
+      "week": 4,
+      "title": "Serverless, Application Integration, and Security Deep-Dive",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "t4_1",
+          "title": "Video: Lambda, API Gateway, SQS, SNS, Amazon Cognito, and AWS KMS",
+          "type": "video",
+          "estimated_minutes": 360,
+          "completed": false
+        },
+        {
+          "id": "t4_2",
+          "title": "Practice: Building a Serverless application using Lambda, API Gateway, and DynamoDB",
+          "type": "practice",
+          "estimated_minutes": 240,
+          "completed": false
+        },
+        {
+          "id": "t4_3",
+          "title": "Reading: Encryption at Rest/In-Transit, and AWS Secrets Manager with Systems Manager Parameter Store",
+          "type": "reading",
+          "estimated_minutes": 180,
+          "completed": false
+        },
+        {
+          "id": "t4_4",
+          "title": "Quiz: Serverless, Messaging Services, and Security",
+          "type": "quiz",
+          "estimated_minutes": 120,
+          "completed": false
+        }
+      ]
+    },
+    {
+      "id": "m5",
+      "week": 5,
+      "title": "Storage Migration, Disaster Recovery, and Cost Optimization",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "t5_1",
+          "title": "Video: Snowball, Storage Gateway, AWS Backup, Disaster Recovery Strategies (Pilot Light, Warm Standby), and Cost Management",
+          "type": "video",
+          "estimated_minutes": 340,
+          "completed": false
+        },
+        {
+          "id": "t5_2",
+          "title": "Practice: Configuring Cross-Region Replication (CRR) and Storage Lifecycle Policies",
+          "type": "practice",
+          "estimated_minutes": 200,
+          "completed": false
+        },
+        {
+          "id": "t5_3",
+          "title": "Reading: S3 Glacier, AWS Organizations, SCPs, and Cost Explorer options",
+          "type": "reading",
+          "estimated_minutes": 160,
+          "completed": false
+        },
+        {
+          "id": "t5_4",
+          "title": "Quiz: Full-length Practice Exam Simulation #1",
+          "type": "quiz",
+          "estimated_minutes": 200,
+          "completed": false
+        }
+      ]
+    },
+    {
+      "id": "m6",
+      "week": 6,
+      "title": "Final Practice Exams, Review, and Certification Readiness",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "t6_1",
+          "title": "Practice: Full-length Practice Exam Simulation #2 and reviewing explanations",
+          "type": "quiz",
+          "estimated_minutes": 240,
+          "completed": false
+        },
+        {
+          "id": "t6_2",
+          "title": "Practice: Full-length Practice Exam Simulation #3 and reviewing explanations",
+          "type": "quiz",
+          "estimated_minutes": 240,
+          "completed": false
+        },
+        {
+          "id": "t6_3",
+          "title": "Reading: Targeted review of key Cheat Sheets (VPC, IAM, RDS, S3, DynamoDB)",
+          "type": "reading",
+          "estimated_minutes": 240,
+          "completed": false
+        },
+        {
+          "id": "t6_4",
+          "title": "Practice: Final rapid-fire drill on highly tested SAA-C03 scenarios",
+          "type": "practice",
+          "estimated_minutes": 180,
+          "completed": false
+        }
+      ]
+    }
+  ]
+}
